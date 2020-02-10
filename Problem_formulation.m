@@ -21,7 +21,7 @@ for j=1:Nseg
     end
 end
 ECOVAT.Constraints.segmentconstr= segmentconstr;
-            
+  disp('>> Segment Constraints created...')          
 %% A device can only be connected to a single segment at a time:
 
 deviceconstr = optimconstr(T_horizon,Ndev);
@@ -31,6 +31,7 @@ for j=1:Ndev
     end
 end
 ECOVAT.Constraints.deviceconstr= deviceconstr;
+disp('>> Devices Constraints created...') 
 
 %% Temperature in each segment should not exceed a maximum predefined temperature:
 T = optimexpr(T_horizon, Nseg);
@@ -42,6 +43,7 @@ for j=1:Nseg
     end
 end
 ECOVAT.Constraints.temp_max_const= temp_max_const;
+disp('>> Temperature limits Constraints created...') 
 
 %% Temperature gradient constraint:
 % Temperature should always be decreasing from top to bottom
@@ -54,6 +56,7 @@ for i=1:T_horizon
     temp_grad_constr(i,4) = T(i,4) >= T(i,5);
 end
 ECOVAT.Constraints.temp_grad_constr= temp_grad_constr;
+disp('>> Temperature gradients constraints created...') 
 
 %% PVT Temperature output (Equality constraint) :
 
@@ -72,6 +75,8 @@ for i=1:T_horizon
 end 
 
 ECOVAT.Constraints.PVT_temp_constr = PVT_temp_constr;
+disp('>> PVT Temperature constraints created...') 
+
 
 %% Connecting PVT to the lower segment:
 % Decision variable for when to connect the PVT to  the buffer:
@@ -89,6 +94,8 @@ end
 ECOVAT.Constraints.PVT_connect_constr1= PVT_connect_constr1;
 ECOVAT.Constraints.PVT_connect_constr2= PVT_connect_constr2;
 ECOVAT.Constraints.PVT_segment_constr= PVT_segment_constr;
+disp('>> PVT connection constraints created...') 
+
 
 %% The (reduced) temperature:
 PVT_red_constr = optimconstr(T_horizon);
@@ -103,6 +110,7 @@ for i=1:T_horizon
 end
 
 ECOVAT.Constraints.PVT_red_constr = PVT_red_constr;
+disp('>> PVT Temperature reduction constraints created...') 
 
 %% Thermal efficiency of the PVT:
 nth = optimexpr(T_horizon);
@@ -124,6 +132,7 @@ ECOVAT.Constraints.nth_constr1= nth_constr1;
 ECOVAT.Constraints.nth_constr2= nth_constr2;
 ECOVAT.Constraints.nth_constr3= nth_constr3;
 
+disp('>> PVT thermal efficiency constraints created...') 
 
 %% Electrical efficiency of the PVT:
 nel = optimexpr(T_horizon);
@@ -144,6 +153,7 @@ ECOVAT.Constraints.nel_constr1= nel_constr1;
 ECOVAT.Constraints.nel_constr2= nel_constr2;
 ECOVAT.Constraints.nel_constr3= nel_constr3;
 
+disp('>> PVT electrical efficiency constraints created...') 
 
 %% Air/Water heat pump model:
 AW_min_constr = optimconstr(T_horizon,5);
@@ -177,6 +187,7 @@ ECOVAT.Constraints.AW_max_constr2 = AW_max_constr2;
 ECOVAT.Constraints.AW_max_constr3 = AW_max_constr3;
 ECOVAT.Constraints.AW_max_constr4 = AW_max_constr4;
 
+disp('>> A/W heat pump constraints created...') 
 
 %% Water Water heat pump 1 Model:
 
@@ -209,6 +220,8 @@ ECOVAT.Constraints.WW1_range_constr2= WW1_range_constr2;
 ECOVAT.Constraints.WW1_range_constr3= WW1_range_constr3;
 ECOVAT.Constraints.WW1_range_constr4= WW1_range_constr4;
 ECOVAT.Constraints.WW1_range_constr5= WW1_range_constr5;
+
+disp('>> W/W 1 heat pump constraints created...') 
 
 
 %% Water/Water Heat pump 2 Model:
@@ -243,6 +256,9 @@ ECOVAT.Constraints.WW2_range_constr3= WW2_range_constr3;
 ECOVAT.Constraints.WW2_range_constr4= WW2_range_constr4;
 ECOVAT.Constraints.WW2_range_constr5= WW2_range_constr5;
 
+disp('>> W/W 2 heat pump constraints created...') 
+
+
 %% Heat Demand Model:
 Demand_constr1 = optimconstr(T_horizon,5);
 Demand_constr2 = optimconstr(T_horizon,5);
@@ -266,6 +282,8 @@ ECOVAT.Constraints.Demand_constr1= Demand_constr1;
 ECOVAT.Constraints.Demand_constr2= Demand_constr2;
 ECOVAT.Constraints.Demand_constr3= Demand_constr3;
 ECOVAT.Constraints.Demand_constr4= Demand_constr4;
+
+disp('>> heat demand constraints created...') 
 
 
 %% Model of the Heat losses for each segment:
@@ -309,6 +327,9 @@ end
 
 ECOVAT.Constraints.Temp_constr = Temp_constr;
 
+disp('>> Temperature evolution constraints created...') 
+
+
 %% Create the objective function:
 disp('> Creating The Objective Function...')
 % The cost of operating the heat pumps at time t:
@@ -331,11 +352,13 @@ end
 TOTAL_COST =sum(tot_Cost);
 
 dispatch.Objective= TOTAL_COST;
+disp('>> Objective function created...') 
+
 
 %% Solve the Optimization Problem:
 %Integer linear programming
 %Suppress iterative display
-
+disp('> Solving the optimization problem...') 
 options = optimoptions('intlinprog','Display','final');
 [ECOVATsol,fval,exitflag,output] = solve(ECOVAT,'options',options);
 
