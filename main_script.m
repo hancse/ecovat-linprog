@@ -1,5 +1,5 @@
 %% Prepare the workspace
-clear all
+clearvars
 close all
 clc
 
@@ -12,4 +12,4 @@ External_datasets;
 %% Create the constriants, objective functions and solve:
 Problem_formulation;
 
-%% Post-process and present the results:
+%% Post-process and data visualization:

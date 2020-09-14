@@ -2,7 +2,7 @@
 disp('> Loading ECOVAT System Parameters...')
 %% Problem notation and parameters:
 % Time horizon (Hourly for one year period):
-T_horizon = 8760;
+T_horizon = 24*10;
 % Number of segments (1= highest, 5=lowest):
 Nseg = 5; 
 %Number of devices:
@@ -66,5 +66,7 @@ Cww1 = 15;
 % Power demanded by the WW2 heat pump when turned on [KW]:
 Cww2 = 15;
 % Power consumed by the resistance heater when turned on [KW]:
-Ces = 1000;
+Cres = 1000;
+% Time step:
+dt = 60*60;
 disp('> Loading ECOVAT System Parameters Completed...')
