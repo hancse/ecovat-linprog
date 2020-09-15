@@ -69,4 +69,4 @@ Cww2 = 15;
 Cres = 1000;
 % Time step:
 dt = 60*60;
-disp('> Loading ECOVAT System Parameters Completed...')
+disp('> Loading ECOVAT System Parameters Completed')

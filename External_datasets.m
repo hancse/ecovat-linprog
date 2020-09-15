@@ -12,7 +12,7 @@ disp('> Loading Solar Irradiation Dataset Completed.')
 disp('> Loading Ambient Temperature Dataset...')
 load('NEN5060_A2');
 Ta = Tout(:,2);
-disp('> Loading Solar Irradiation Dataset Completed...')
+disp('> Loading Solar Irradiation Dataset Completed.')
 
 %% Heat Demand [W] [Wh]:
 Nhouses = input('Enter the Number of Households Connected to ECOVAT:');

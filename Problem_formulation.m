@@ -7,7 +7,7 @@ ECOVAT = optimproblem('ObjectiveSense','minimize');
 
 %% Define the Decision variable:
 % x(t,s,d): The state of device d at time t with respect to segment s.
-% 1= ON  0=OFF
+% 1= Device ON  0= Device OFF
 x = optimvar('x',T_horizon,Nseg,Dev,'Type','integer','LowerBound',0,'UpperBound',1);
 
 %% Problem Constraints:
@@ -79,7 +79,7 @@ disp('>> PVT Temperature constraints created...')
 
 
 %% Connecting PVT to the lower segment:
-% Decision variable for when to connect the PVT to  the buffer:
+% Decision variable for when to connect the PVT to the buffer:
 wt = optimvar('wt',T_horizon,'Type','integer','LowerBound',0,'UpperBound',1);
 PVT_connect_constr1 = optimconstr(T_horizon);
 PVT_connect_constr2 = optimconstr(T_horizon);
