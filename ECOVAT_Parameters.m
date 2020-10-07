@@ -1,8 +1,10 @@
-
-disp('> Loading ECOVAT System Parameters...')
 %% Problem notation and parameters:
+disp('> Loading ECOVAT System Parameters...')
+
 % Time horizon (Hourly for one year period):
-T_horizon = 24*10;
+T_horizon = 8760;
+% Time step [s]:
+dt = 60*60;
 % Number of segments (1= highest, 5=lowest):
 Nseg = 5; 
 %Number of devices:
@@ -67,6 +69,5 @@ Cww1 = 15;
 Cww2 = 15;
 % Power consumed by the resistance heater when turned on [KW]:
 Cres = 1000;
-% Time step:
-dt = 60*60;
+
 disp('> Loading ECOVAT System Parameters Completed...')
