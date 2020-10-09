@@ -412,7 +412,7 @@ end
 
 ECOVAT.Constraints.WW2_conn_constr= WW2_conn_constr;
     
-disp('>> W/W 1 heat connection constraints created...')
+disp('>> W/W 2 heat connection constraints created...')
 
 
 %% Heat Demand Model:
@@ -441,11 +441,11 @@ for i=1:T_horizon
     end
     
     if Q_dem(i)==0
-    Demand_constr6(i) =x(t,1,'DEM')+ x(t,2,'DEM')+ x(t,3,'DEM')+...
+    Demand_constr6(i) =x(i,1,'DEM')+ x(i,2,'DEM')+ x(i,3,'DEM')+...
                        x(t,4,'DEM')+ x(t,5,'DEM')==0;
     else
-    Demand_constr6(i) =x(t,1,'DEM')+ x(t,2,'DEM')+ x(t,3,'DEM')+...
-                       x(t,4,'DEM')+ x(t,5,'DEM')==1;  
+    Demand_constr6(i) =x(i,1,'DEM')+ x(i,2,'DEM')+ x(i,3,'DEM')+...
+                       x(i,4,'DEM')+ x(i,5,'DEM')==1;  
     end
 end
 
@@ -477,16 +477,25 @@ Temp_constr = optimconstr(T_horizon-1,Nseg);
 for i=1:T_horizon-1
     
    % For the bottom segment:
+   if i==1 
+       Temp_constr(i,5)= T(i+1,5)== 4;
+   else
    Temp_constr(i,5)= T(i+1,5)== T(i,5)+ (dt/(Ms(5)*Cp))*(...
                nth(i)*G(i)*Apvt*Npvt*x(i,5,'PVT')-...
                Cww1*(COPww1-1)*HP1_src(i,5)-...
                Cww2*(COPww2-1)*HP2_src(i,5)-...
-               Q_dem(i)*x(i,1,'DEM')-...
+               Q_dem(i)*x(i,5,'DEM')-...
                (1-((1-B)^(1/4380))*(T(i,5)-Tgw)*Ms(5)*Cp/3600));
                
-    
+   end
     % For the rest of the segments:
     for j=1:4
+        if i==1
+            Temp_constr(i,4)= T(i+1,4)== 30;
+            Temp_constr(i,3)= T(i+1,3)== 55;
+            Temp_constr(i,2)= T(i+1,2)== 70;
+            Temp_constr(i,1)= T(i+1,1)== 95;
+        else        
      Temp_constr(i,j)= T(i+1,j)== T(i,j) +...
                     (dt/(Ms(j)*Cp))*(...
                     Caw*COPaw*x(i,j,'AW')+...
@@ -497,6 +506,7 @@ for i=1:T_horizon-1
                     Cres*x(i,j,'RES')-...
                     Q_dem(i)*x(i,j,'DEM')-...
                     (1-((1-B)^(1/4380))*(T(i,j)-Tgw)*Ms(j)*Cp/3600));
+        end
     end
 end     
 
