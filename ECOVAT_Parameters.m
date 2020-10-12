@@ -2,9 +2,9 @@
 disp('> Loading ECOVAT System Parameters...')
 
 % Time horizon (Hourly for one year period):
-T_horizon = 8760;
-% Time step [s]:
-dt = 60*60;
+T_horizon = 10*24;
+% Time step (1 hour)
+dt = 60*60; %[seconds]
 % Number of segments (1= highest, 5=lowest):
 Nseg = 5; 
 %Number of devices:
@@ -12,7 +12,7 @@ Ndev =6;
 % Heat Sources/load:
 Dev = ["PVT","AW","WW1","WW2","RES","DEM"];
 % Maximum temperature in each segment:
-Tmax =[ 5 30 55 70 95]; %[C]
+Tmax =[95 70 55 30 5]; %[C]
 % Masses of segments 1 to 5 [Kg]:
 Ms = [1.04e6 1.04e6 1.04e6 9.11e5 9.11e5];
 % Area of a PVT panel [m2]:
@@ -69,5 +69,4 @@ Cww1 = 15;
 Cww2 = 15;
 % Power consumed by the resistance heater when turned on [KW]:
 Cres = 1000;
-
-disp('> Loading ECOVAT System Parameters Completed...')
+disp('> Loading ECOVAT System Parameters Completed')
