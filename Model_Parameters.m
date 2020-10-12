@@ -1,6 +1,4 @@
-clear all 
-close all
-clc
+
 
 %% Problem notation and parameters:
 % Time horizon (Hourly for one year period):
