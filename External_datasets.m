@@ -12,7 +12,7 @@ disp('> Loading Solar Irradiation Dataset Completed.')
 disp('> Loading Ambient Temperature Dataset...')
 load('NEN5060_A2');
 Ta = Tout(:,2);
-disp('> Loading Solar Irradiation Dataset Completed...')
+disp('> Loading Solar Irradiation Dataset Completed.')
 
 %% Heat Demand [W] [Wh]:
 Nhouses = input('Enter the Number of Households Connected to ECOVAT:');
@@ -34,7 +34,7 @@ Q_heating = (Nhouses*HHr + Ofr*Aoffices).*Norm_SH;
 Q_tab = (Nhouses*HTr).*Norm_TW;
 %Total heat demand [Wh]
 Q_dem = (Q_heating +Q_tab).*((10^9)/3600);
-disp('> Heat demand Dataset Generated.')
+disp('> Heat demand Dataset Generated')
 
 % The temperature at at which the demand should be supplied [C]:
 Tdem =40;
