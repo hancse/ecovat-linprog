@@ -12,15 +12,15 @@ Ndev =6;
 % Heat Sources/load:
 Dev = ["PVT","AW","WW1","WW2","RES","DEM"];
 % Maximum temperature in each segment:
-Tmax =[95 70 55 30 5]; %[C]
+Tmax =[100 80 60 40 8]; %[C]
 % Masses of segments 1 to 5 [Kg]:
 Ms = [1.04e6 1.04e6 1.04e6 9.11e5 9.11e5];
 % Area of a PVT panel [m2]:
 Apvt = 1.8;
-% Specific Heat coefficent of water [J/(kg K)]:
+% Specific Heat capacity of water [J/(kg K)]:
 Cp= 4168;
-% Flow rate of water through the PVT [Kg/s];
-Fpvt = 0.018;
+% Flow rate of water through the PVT [Kg/s]* 3600;
+Fpvt = 0.018*3600;
 % Thermal efficiency at a reduced temperature of zero [m2??CW]:
 nth0 = 0.73;
 % COP of the air/water heat pump:
@@ -30,7 +30,7 @@ COPww1 = 2.851;
 % COP of water/water heat pump 2:
 COPww2 = 3.681;
 % Initial temperature in each segment [C]:
-Temp0 = [90 75 50 30 5];
+Temp0 = [90 75 40 15 5];
 % PVT thermal loss coefficient:
 ath = 7.25;
 % PVT electrical loss coefficient:
@@ -60,13 +60,13 @@ Tgw = 15;
 % Temperature at which heat is demanded [C]:
 Tdem = 40;
 %Big M factor for linearization of nonlinear constraints:
-M =150;
-% Power demanded by the AW heat pump when turned on [kW]:
-Caw= 9;
-% Power demanded by the WW1 heat pump when turned on [KW]:
-Cww1 = 15;
-% Power demanded by the WW2 heat pump when turned on [KW]:
-Cww2 = 15;
-% Power consumed by the resistance heater when turned on [KW]:
-Cres = 1000;
+M =2000;
+% Power demanded by the AW heat pump when turned on [W]:
+Caw= 9000;
+% Power demanded by the WW1 heat pump when turned on [W]:
+Cww1 = 1500;
+% Power demanded by the WW2 heat pump when turned on [W]:
+Cww2 = 1500;
+% Power consumed by the resistance heater when turned on [W]:
+Cres = 1000e3;
 disp('> Loading ECOVAT System Parameters Completed')

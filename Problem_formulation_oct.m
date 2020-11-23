@@ -1,7 +1,7 @@
 
 %% Create the optimization problem :
 disp('> Initializing the Optimization Problem...')
-ECOVAT = optimproblem('ObjectiveSense','minimize');
+ECOVAT = optimproblem('ObjectiveSense','max');
 %Integer linear programming
 %Suppress iterative display
 
@@ -13,53 +13,55 @@ x = optimvar('x',T_horizon,Nseg,Dev,'Type','integer','LowerBound',0,'UpperBound'
 %% Problem Constraints:
 disp('> Creating Constraints...')
 
-%% Any segment can have only one device connected to it at a time:
-segmentconstr = optimconstr(T_horizon,Nseg);
-for j=1:Nseg
-    for i=1:T_horizon
-        segmentconstr(i,j)= x(i,j,'PVT')+ x(i,j,'AW')+ x(i,j,'WW1')...
-                          + x(i,j,'WW2')+ x(i,j,'RES')+x(i,j,'DEM')  <=1;
-    end
-end
-ECOVAT.Constraints.segmentconstr= segmentconstr;
-  disp('>> Segment Constraints created...')   
+% %% Any segment can have only one device connected to it at a time:
+% segmentconstr = optimconstr(T_horizon,Nseg);
+% for j=1:Nseg
+%     for i=1:T_horizon
+%         segmentconstr(i,j)= x(i,j,'PVT')+ x(i,j,'AW')+ x(i,j,'WW1')...
+%                           + x(i,j,'WW2')+ x(i,j,'RES')+x(i,j,'DEM')  <=1;
+%     end
+% end
+% ECOVAT.Constraints.segmentconstr= segmentconstr;
+%   disp('>> Segment Constraints created...')   
   
 %% A device can only be connected to a single segment at a time:
-
-deviceconstr = optimconstr(T_horizon,Ndev);
-for j=1:Ndev
-    for i=1:T_horizon
-        deviceconstr(i,j) = x(i,1,j)+ x(i,2,j)+x(i,3,j)...
-                          + x(i,4,j)+ x(i,5,j)<= 1;
-    end
-end
-ECOVAT.Constraints.deviceconstr= deviceconstr;
-disp('>> Devices Constraints created...') 
+% 
+% deviceconstr = optimconstr(T_horizon,Ndev);
+% for j=1:Ndev
+%     for i=1:T_horizon
+%         deviceconstr(i,j) = x(i,1,j)+ x(i,2,j)+x(i,3,j)...
+%                           + x(i,4,j)+ x(i,5,j)<= 1;
+%     end
+% end
+% 
+% ECOVAT.Constraints.deviceconstr= deviceconstr;
+% disp('>> Devices Constraints created...') 
 
 %% Temperature in each segment should not exceed a maximum predefined temperature:
 T = optimexpr(T_horizon, Nseg);
 % T(t,S) is the temperature of segment S at time t
-temp_max_constr = optimconstr(T_horizon,Nseg);
-for j=1:Nseg
-    for i=1:T_horizon
-       temp_max_constr(i,j)= T(i,j) <= Tmax(j);
-    end
-end
-ECOVAT.Constraints.temp_max_const= temp_max_constr;
-disp('>> Maximum Temperatures Constraints created...') 
+% temp_max_constr = optimconstr(T_horizon,Nseg);
+% for j=1:Nseg
+%     for i=1:T_horizon
+%        temp_max_constr(i,j)= T(i,j) <= Tmax(j);
+%     end
+% end
+% 
+% ECOVAT.Constraints.temp_max_const= temp_max_constr;
+% disp('>> Maximum Temperatures Constraints created...') 
 
 %% Temperature gradient constraint:
 % Temperature should always be decreasing from top to bottom
-temp_grad_constr = optimconstr(T_horizon,4);
-
-for i=1:T_horizon
-    temp_grad_constr(i,1) = T(i,1) >= T(i,2);
-    temp_grad_constr(i,2) = T(i,2) >= T(i,3);
-    temp_grad_constr(i,3) = T(i,3) >= T(i,4);
-    temp_grad_constr(i,4) = T(i,4) >= T(i,5);
-end
-ECOVAT.Constraints.temp_grad_constr= temp_grad_constr;
-disp('>> Temperature gradients constraints created...') 
+% temp_grad_constr = optimconstr(T_horizon,4);
+% 
+% for i=1:T_horizon
+%     temp_grad_constr(i,1) = T(i,1) >= T(i,2);
+%     temp_grad_constr(i,2) = T(i,2) >= T(i,3);
+%     temp_grad_constr(i,3) = T(i,3) >= T(i,4);
+%     temp_grad_constr(i,4) = T(i,4) >= T(i,5);
+% end
+% ECOVAT.Constraints.temp_grad_constr= temp_grad_constr;
+% disp('>> Temperature gradients constraints created...') 
 
 %% PVT Temperature output (Equality constraint) :
 
@@ -82,21 +84,24 @@ disp('>> PVT Temperature constraints created...')
 
 
 %% Connecting PVT to the lower segment:
-% Decision variable for when to connect the PVT to the buffer:
+%Decision variable for when to connect the PVT to the buffer:
 wt = optimvar('wt',T_horizon,'Type','integer','LowerBound',0,'UpperBound',1);
 PVT_connect_constr1 = optimconstr(T_horizon);
 PVT_connect_constr2 = optimconstr(T_horizon);
 PVT_segment_constr3 = optimconstr(T_horizon);
 
+
+
 for i=1:T_horizon
    PVT_connect_constr1(i)= Tpvtout(i) >= T(i,5)+ (1-wt(i))*M;
    PVT_connect_constr2(i)= Tpvtout(i) <= T(i,5)+ M*wt(i);
-   PVT_segment_constr(i) = x(i,5,'PVT') <= wt(i);
+   PVT_segment_constr3(i) = x(i,5,'PVT') <= wt(i);
 end
 
 ECOVAT.Constraints.PVT_connect_constr1= PVT_connect_constr1;
 ECOVAT.Constraints.PVT_connect_constr2= PVT_connect_constr2;
 ECOVAT.Constraints.PVT_segment_constr3= PVT_segment_constr3;
+
 disp('>> PVT connection constraints created...') 
 
 
@@ -475,13 +480,13 @@ end
 Temp_constr = optimconstr(T_horizon-1,Nseg);
 
    
-for i=1:T_horizon-1
+for i=0:T_horizon-1
     
    % For the bottom segment:
-   if i==1 
-       Temp_constr(i,5)= T(i+1,5)== 4;
+   if i==0 
+       Temp_constr(i+1,5)= T(i+1,5)== 3;
    else
-   Temp_constr(i,5)= T(i+1,5)== T(i,5)+ (dt/(Ms(5)*Cp))*(...
+   Temp_constr(i+1,5)= T(i+1,5)== T(i,5)+ (dt/(Ms(5)*Cp))*(...
                nth(i)*G(i)*Apvt*Npvt*x(i,5,'PVT')-...
                Cww1*(COPww1-1)*HP1_src(i,5)-...
                Cww2*(COPww2-1)*HP2_src(i,5)-...
@@ -491,13 +496,13 @@ for i=1:T_horizon-1
    end
     % For the rest of the segments:
     for j=1:4
-        if i==1
-            Temp_constr(i,4)= T(i+1,4)== 30;
-            Temp_constr(i,3)= T(i+1,3)== 55;
-            Temp_constr(i,2)= T(i+1,2)== 70;
-            Temp_constr(i,1)= T(i+1,1)== 95;
+        if i==0
+            Temp_constr(i+1,4)= T(i+1,4)== 30;
+            Temp_constr(i+1,3)= T(i+1,3)== 50;
+            Temp_constr(i+1,2)= T(i+1,2)== 70;
+            Temp_constr(i+1,1)= T(i+1,1)== 80;
         else        
-     Temp_constr(i,j)= T(i+1,j)== T(i,j) +...
+     Temp_constr(i+1,j)= T(i+1,j)== T(i,j) +...
                     (dt/(Ms(j)*Cp))*(...
                     Caw*COPaw*x(i,j,'AW')+...
                     Cww1*COPww1*HP1_sink(i,j)-...
@@ -525,6 +530,9 @@ PVT_gen=optimexpr(T_horizon);
 % The total cost of operation at time t:
 tot_Cost= optimexpr(T_horizon);
 
+term2= optimexpr(T_horizon);
+term3= optimexpr(T_horizon);
+
 for i=1:T_horizon
     PVT_gen(i)=nel(i)*G(i)*Apvt*Npvt;
     HP = 0;
@@ -535,9 +543,16 @@ for i=1:T_horizon
     tot_Cost(i) = (OP_Cost(i) - PVT_gen(i))*ePrice(i)*1e-6;
 end
 
-TOTAL_COST =sum(tot_Cost);
+% Coefficients for tuning the cost function:
+c2= 1e-5;
+c3= 1e-5;
 
-ECOVAT.Objective= TOTAL_COST;
+for i=1:T_horizon
+term2(i) = c2.* [5 4 3 2 1]*[T(i,1); T(i,2); T(i,3); T(i,4) ; T(i,5)];
+term3(i) = c3 * nth(i)*G(i)*Apvt*Npvt*x(i,5,'PVT');
+end
+
+ECOVAT.Objective= sum(sum(tot_Cost) - sum(term2) - sum(term3));
 disp('>> Objective function created...') 
 
 
@@ -546,7 +561,10 @@ disp('>> Objective function created...')
 %Suppress iterative display
 disp('> Solving the optimization problem...') 
 options = optimoptions('intlinprog','Display','iter');
-[ECOVATsol,fval,exitflag,output] = solve(ECOVAT,'options',options);
+ECOVATproblem = prob2struct(ECOVAT);
+
+ECOsol = intlinprog(ECOVATproblem)
+%[ECOVATsol,fval,exitflag,output] = solve(ECOVAT,'options',options);
 
 
 
