@@ -7,13 +7,13 @@ disp('> Loading Solar Irradiation Dataset...')
 G = xlsread('Climate_Data',3,'BA11:BA8770');
 G = G.*((10^4)/(3600)); %convert to [w/m2]
 disp('> Loading Solar Irradiation Dataset Completed.')
-
+G= kron(G,ones(4,1));
 %% Ambient Temperature [C]:
 disp('> Loading Ambient Temperature Dataset...')
 load('NEN5060_A2');
 Ta = Tout(:,2);
 disp('> Loading Solar Irradiation Dataset Completed.')
-
+Ta=kron(Ta,ones(4,1));
 %% Heat Demand [W] [Wh]:
 Nhouses = input('Enter the Number of Households Connected to ECOVAT:');
 Aoffices= input('Enter the Area (in m2) of the Office Space:');
@@ -35,7 +35,7 @@ Q_tab = (Nhouses*HTr).*Norm_TW;
 %Total heat demand [Wh]
 Q_dem = (Q_heating +Q_tab).*((10^9)/3600);
 disp('> Heat demand Dataset Generated')
-
+Q_dem=kron(Q_dem,ones(4,1));
 % The temperature at at which the demand should be supplied [C]:
 Tdem =40;
 
@@ -45,4 +45,5 @@ Npvt =Nhouses*6;
 disp('> Loading Electricity Prices Dataset...')
 load('HM_fEAPX');
 ePrice = fEAPX;
+ePrice=kron(ePrice,ones(4,1));
 disp('> Loading Electricity Prices Dataset Completed.')

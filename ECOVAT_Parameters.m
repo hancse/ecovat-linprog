@@ -2,15 +2,16 @@
 disp('> Loading ECOVAT System Parameters...')
 
 % Time horizon (Hourly for one year period):
-T_horizon = 10*24;
-% Time step (1 hour)
-dt = 60*60; %[seconds]
+T_horizon = 3*4;
+% Time step (15 minutes)
+dt = 900; %[seconds]
 % Number of segments (1= highest, 5=lowest):
 Nseg = 5; 
 %Number of devices:
-Ndev =6;
+Ndev =4;
 % Heat Sources/load:
-Dev = ["PVT","AW","WW1","WW2","RES","DEM"];
+Dev = ["PVT","AW","RES","DEM"];
+
 % Maximum temperature in each segment:
 Tmax =[100 80 60 40 8]; %[C]
 % Masses of segments 1 to 5 [Kg]:
@@ -60,7 +61,7 @@ Tgw = 15;
 % Temperature at which heat is demanded [C]:
 Tdem = 40;
 %Big M factor for linearization of nonlinear constraints:
-M =2000;
+M =200;
 % Power demanded by the AW heat pump when turned on [W]:
 Caw= 9000;
 % Power demanded by the WW1 heat pump when turned on [W]:
