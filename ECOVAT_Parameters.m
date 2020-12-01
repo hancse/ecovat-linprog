@@ -2,18 +2,18 @@
 disp('> Loading ECOVAT System Parameters...')
 
 % Time horizon (Hourly for one year period):
-T_horizon = 3*4;
+T_horizon = 24*4;
 % Time step (15 minutes)
 dt = 900; %[seconds]
 % Number of segments (1= highest, 5=lowest):
 Nseg = 5; 
 %Number of devices:
-Ndev =4;
+Ndev =6;
 % Heat Sources/load:
-Dev = ["PVT","AW","RES","DEM"];
+Dev = ["PVT","AW","WW1","WW2","RES","DEM"];
 
 % Maximum temperature in each segment:
-Tmax =[100 80 60 40 8]; %[C]
+Tmax =[90 90 90 90 90]; %[C]
 % Masses of segments 1 to 5 [Kg]:
 Ms = [1.04e6 1.04e6 1.04e6 9.11e5 9.11e5];
 % Area of a PVT panel [m2]:
@@ -31,7 +31,7 @@ COPww1 = 2.851;
 % COP of water/water heat pump 2:
 COPww2 = 3.681;
 % Initial temperature in each segment [C]:
-Temp0 = [90 75 40 15 5];
+Temp0 = [95 90 90 90 90];
 % PVT thermal loss coefficient:
 ath = 7.25;
 % PVT electrical loss coefficient:

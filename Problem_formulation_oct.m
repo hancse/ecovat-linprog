@@ -17,7 +17,7 @@ disp('> Creating Constraints...')
 segmentconstr = optimconstr(T_horizon,Nseg);
 for j=1:Nseg
     for i=1:T_horizon
-        segmentconstr(i,j)= x(i,j,'PVT')+x(i,j,'AW')+ x(i,j,'WW1')+ x(i,j,'RES')+x(i,j,'DEM')  <=1;
+        segmentconstr(i,j)= x(i,j,'PVT')+x(i,j,'AW')+ x(i,j,'WW1')+x(i,j,'WW2')+ x(i,j,'RES')+x(i,j,'DEM')  <=1;
     end
 end
 ECOVAT.Constraints.segmentconstr= segmentconstr;
@@ -37,30 +37,32 @@ ECOVAT.Constraints.deviceconstr= deviceconstr;
 disp('>> Devices Constraints created...') 
 
 %% Temperature in each segment should not exceed a maximum predefined temperature:
+
 T = optimvar('T',T_horizon, Nseg,'Type','continuous');
 % T(t,S) is the temperature of segment S at time t
-% temp_max_constr = optimconstr(T_horizon,Nseg);
-% for j=1:Nseg
-%     for i=1:T_horizon
-%        temp_max_constr(i,j)= T(i,j) <= Tmax(j);
-%     end
-% end
-% 
-% ECOVAT.Constraints.temp_max_const= temp_max_constr;
-% disp('>> Maximum Temperatures Constraints created...') 
+
+temp_max_constr = optimconstr(T_horizon,Nseg);
+for j=1:Nseg
+    for i=1:T_horizon
+       temp_max_constr(i,j)= T(i,j) <= Tmax(j);
+    end
+end
+
+ECOVAT.Constraints.temp_max_const= temp_max_constr;
+disp('>> Maximum Temperatures Constraints created...') 
 
 %% Temperature gradient constraint:
-% %Temperature should always be decreasing from top to bottom
-% temp_grad_constr = optimconstr(T_horizon,4);
-% 
-% for i=1:T_horizon
-%     temp_grad_constr(i,1) = T(i,1) >= T(i,2);
-%     temp_grad_constr(i,2) = T(i,2) >= T(i,3);
-%     temp_grad_constr(i,3) = T(i,3) >= T(i,4);
-%     temp_grad_constr(i,4) = T(i,4) >= T(i,5);
-% end
-% ECOVAT.Constraints.temp_grad_constr= temp_grad_constr;
-% disp('>> Temperature gradients constraints created...') 
+%Temperature should always be decreasing from top to bottom
+temp_grad_constr = optimconstr(T_horizon,4);
+
+for i=1:T_horizon
+    temp_grad_constr(i,1) = T(i,1) >= T(i,2);
+    temp_grad_constr(i,2) = T(i,2) >= T(i,3);
+    temp_grad_constr(i,3) = T(i,3) >= T(i,4);
+    temp_grad_constr(i,4) = T(i,4) >= T(i,5);
+end
+ECOVAT.Constraints.temp_grad_constr= temp_grad_constr;
+disp('>> Temperature gradients constraints created...') 
 
 %% PVT Temperature output (Equality constraint) :
 
@@ -303,125 +305,135 @@ disp('>> W/W 1 heat pump source/sink constraints created...')
 %To ensure that either both a heat source and heat sink are selected, or neither is.
 
 WW1_conn_constr = optimconstr(T_horizon);
+WW1_x_constr = optimconstr(T_horizon,Nseg);
 
 for i=1:T_horizon
     WW1_conn_constr(i)= HP1_sink(i,1)+ HP1_sink(i,2)+ HP1_sink(i,3)+ HP1_sink(i,4)+ HP1_sink(i,5)...
                      == HP1_src(i,1)+ HP1_src(i,2) + HP1_src(i,3)+ HP1_src(i,4)+ HP1_src(i,5);
+    
+    for j=1:Nseg
+       WW1_x_constr(i,j)= x(i,j,'WW1')== HP1_sink(i,j);
+   end
 end
 
 ECOVAT.Constraints.WW1_conn_constr= WW1_conn_constr;
-    
+ECOVAT.Constraints.WW1_x_constr= WW1_x_constr;    
 disp('>> W/W 1 heat  pump connection constraints created...')
 
 
 %% Water/Water Heat pump 2 Model:
 % 
-% % Decision variable for when connecting segment s to the source of HP 2
-% HP2_src = optimvar('HP2_src',T_horizon,Nseg,'Type','integer','LowerBound',0,'UpperBound',1);
-% 
-% % Decision variable for when connecting segment s to the sink of HP 2
-% HP2_sink = optimvar('HP2_sink',T_horizon,Nseg,'Type','integer','LowerBound',0,'UpperBound',1);
-% 
-% % y_ww2 is a variable introduced to linearize the product of x*T:
-% y_ww2=optimexpr(T_horizon,5);
-% 
-% WW2_range_constr1 = optimconstr(T_horizon,5);
-% WW2_range_constr2 = optimconstr(T_horizon,5);
-% WW2_range_constr3=  optimconstr(T_horizon,5);
-% WW2_range_constr4 = optimconstr(T_horizon,5);
-% WW2_range_constr5 = optimconstr(T_horizon,5);
-% WW2_range_constr6 = optimconstr(T_horizon,5);
-% 
-% for i=1:T_horizon
-%     for j=1:5
-%     WW2_range_constr1(i,j) = (1-HP2_src(i,j))*M + T(i,j) >= Tww2_min;
-%   
-%     WW2_range_constr2(i,j) = y_ww2(i,j) <= M* HP2_sink(i,j);
-%     WW2_range_constr3(i,j) = y_ww2(i,j) <= T(i,j);
-%     WW2_range_constr4(i,j) = y_ww2(i,j) >= T(i,j) - M*(1- HP2_sink(i,j));
-%     WW2_range_constr5(i,j) = y_ww2(i,j) >=0;
-%     
-%     WW2_range_constr6(i,j) = y_ww2(i,j) <= Tww2_max;
-%     
-%     end
-% end
-% 
-% ECOVAT.Constraints.WW2_range_constr1= WW2_range_constr1;
-% ECOVAT.Constraints.WW2_range_constr2= WW2_range_constr2;
-% ECOVAT.Constraints.WW2_range_constr3= WW2_range_constr3;
-% ECOVAT.Constraints.WW2_range_constr4= WW2_range_constr4;
-% ECOVAT.Constraints.WW2_range_constr5= WW2_range_constr5;
-% ECOVAT.Constraints.WW2_range_constr6= WW2_range_constr6;
-% 
-% disp('>> W/W 2 heat pump range constraints created...')
-% 
-% %% WW2 Heat pump segments constraints:
-% % To make sure the heat sink has a higher temperature than the heat source
-% 
-% % z_ww2 is a variable introduced to linearize the product of x*T:
-% z_ww2=optimexpr(T_horizon,5);
-% 
-% WW2_sink_constr1 = optimconstr(T_horizon,5);
-% WW2_sink_constr2 = optimconstr(T_horizon,5);
-% WW2_sink_constr3 = optimconstr(T_horizon,5);
-% WW2_sink_constr4 = optimconstr(T_horizon,5);
-% 
-% % r_ww2 is a variable introduced to linearize the product of x*T:
-% r_ww2=optimexpr(T_horizon,5);
-% 
-% WW2_source_constr1 = optimconstr(T_horizon,5);
-% WW2_source_constr2 = optimconstr(T_horizon,5);
-% WW2_source_constr3 = optimconstr(T_horizon,5);
-% WW2_source_constr4 = optimconstr(T_horizon,5);
-% 
-% % constraint To insure the heat sink has a higher temperature than the
-% % heat source:
-% WW2_tempdiff_constr = optimconstr(T_horizon);
-% 
-% for i=1:T_horizon 
-%     for j =1:5
-%         WW2_sink_constr1(i,j) = z_ww2(i,j) <= M* HP2_sink(i,j);
-%         WW2_sink_constr2(i,j) = z_ww2(i,j) <= T(i,j);
-%         WW2_sink_constr3(i,j) = z_ww2(i,j) >= T(i,j) - M*(1- HP2_sink(i,j));
-%         WW2_sink_constr4(i,j) = z_ww2(i,j) >=0;
-%         
-%         WW2_source_constr1(i,j) = r_ww2(i,j) <= M* HP2_src(i,j);
-%         WW2_source_constr2(i,j) = r_ww2(i,j) <= T(i,j);
-%         WW2_source_constr3(i,j) = r_ww2(i,j) >= T(i,j) - M*(1- HP2_src(i,j));
-%         WW2_source_constr4(i,j) = r_ww2(i,j) >=0;   
-%         
-%     end
-%     WW2_tempdiff_constr(i)= z_ww2(i,1)+ z_ww2(i,2) + z_ww2(i,3)+ z_ww2(i,4)+ z_ww2(i,5)...
-%                       >=  r_ww2(i,1)+ r_ww2(i,2) + r_ww2(i,3)+ r_ww2(i,4)+ r_ww2(i,5);
-% end
-% 
-% ECOVAT.Constraints.WW2_sink_constr1= WW2_sink_constr1;
-% ECOVAT.Constraints.WW2_sink_constr2= WW2_sink_constr2;
-% ECOVAT.Constraints.WW2_sink_constr3= WW2_sink_constr3;
-% ECOVAT.Constraints.WW2_sink_constr4= WW2_sink_constr4;
-% 
-% ECOVAT.Constraints.WW2_source_constr1= WW2_source_constr1;
-% ECOVAT.Constraints.WW2_source_constr2= WW2_source_constr2;
-% ECOVAT.Constraints.WW2_source_constr3= WW2_source_constr3;
-% ECOVAT.Constraints.WW2_source_constr4= WW2_source_constr4;
-% 
-% ECOVAT.Constraints.WW2_tempdiff_constr= WW2_tempdiff_constr;
-% 
-% disp('>> W/W 2 heat pump source/sink constraints created...')
-% 
-% %% WW2 heat pump connection constraint:
-% %To ensure that either both a heat source and heat sink are selected, or neither is.
-% 
-% WW2_conn_constr = optimconstr(T_horizon);
-% 
-% for i=1:T_horizon
-%     WW2_conn_constr(i)= HP2_sink(i,1)+ HP2_sink(i,2)+ HP2_sink(i,3)+ HP2_sink(i,4)+ HP2_sink(i,5)...
-%                      == HP2_src(i,1)+ HP2_src(i,2) + HP2_src(i,3)+ HP2_src(i,4)+ HP2_src(i,5);
-% end
-% 
-% ECOVAT.Constraints.WW2_conn_constr= WW2_conn_constr;
-%     x(i,j,'AW')+
-% disp('>> W/W 2 heat pump connection constraints created...')
+% Decision variable for when connecting segment s to the source of HP 2
+HP2_src = optimvar('HP2_src',T_horizon,Nseg,'Type','integer','LowerBound',0,'UpperBound',1);
+
+% Decision variable for when connecting segment s to the sink of HP 2
+HP2_sink = optimvar('HP2_sink',T_horizon,Nseg,'Type','integer','LowerBound',0,'UpperBound',1);
+
+% y_ww2 is a variable introduced to linearize the product of x*T:
+y_ww2=optimvar('y_ww2',T_horizon,5,'Type','continuous');
+
+WW2_range_constr1 = optimconstr(T_horizon,5);
+WW2_range_constr2 = optimconstr(T_horizon,5);
+WW2_range_constr3=  optimconstr(T_horizon,5);
+WW2_range_constr4 = optimconstr(T_horizon,5);
+WW2_range_constr5 = optimconstr(T_horizon,5);
+WW2_range_constr6 = optimconstr(T_horizon,5);
+
+for i=1:T_horizon
+    for j=1:5
+    WW2_range_constr1(i,j) = (1-HP2_src(i,j))*M + T(i,j) >= Tww2_min;
+  
+    WW2_range_constr2(i,j) = y_ww2(i,j) <= M* HP2_sink(i,j);
+    WW2_range_constr3(i,j) = y_ww2(i,j) <= T(i,j);
+    WW2_range_constr4(i,j) = y_ww2(i,j) >= T(i,j) - M*(1- HP2_sink(i,j));
+    WW2_range_constr5(i,j) = y_ww2(i,j) >=0;
+    
+    WW2_range_constr6(i,j) = y_ww2(i,j) <= Tww2_max;
+    
+    end
+end
+
+ECOVAT.Constraints.WW2_range_constr1= WW2_range_constr1;
+ECOVAT.Constraints.WW2_range_constr2= WW2_range_constr2;
+ECOVAT.Constraints.WW2_range_constr3= WW2_range_constr3;
+ECOVAT.Constraints.WW2_range_constr4= WW2_range_constr4;
+ECOVAT.Constraints.WW2_range_constr5= WW2_range_constr5;
+ECOVAT.Constraints.WW2_range_constr6= WW2_range_constr6;
+
+disp('>> W/W 2 heat pump range constraints created...')
+
+%% WW2 Heat pump segments constraints:
+% To make sure the heat sink has a higher temperature than the heat source
+
+% z_ww2 is a variable introduced to linearize the product of x*T:
+z_ww2=optimvar('z_ww2',T_horizon,5,'Type','continuous');
+
+WW2_sink_constr1 = optimconstr(T_horizon,5);
+WW2_sink_constr2 = optimconstr(T_horizon,5);
+WW2_sink_constr3 = optimconstr(T_horizon,5);
+WW2_sink_constr4 = optimconstr(T_horizon,5);
+
+% r_ww2 is a variable introduced to linearize the product of x*T:
+r_ww2=optimvar('r_ww2',T_horizon,5,'Type','continuous');
+
+WW2_source_constr1 = optimconstr(T_horizon,5);
+WW2_source_constr2 = optimconstr(T_horizon,5);
+WW2_source_constr3 = optimconstr(T_horizon,5);
+WW2_source_constr4 = optimconstr(T_horizon,5);
+
+% constraint To insure the heat sink has a higher temperature than the
+% heat source:
+WW2_tempdiff_constr = optimconstr(T_horizon);
+
+for i=1:T_horizon 
+    for j =1:5
+        WW2_sink_constr1(i,j) = z_ww2(i,j) <= M* HP2_sink(i,j);
+        WW2_sink_constr2(i,j) = z_ww2(i,j) <= T(i,j);
+        WW2_sink_constr3(i,j) = z_ww2(i,j) >= T(i,j) - M*(1- HP2_sink(i,j));
+        WW2_sink_constr4(i,j) = z_ww2(i,j) >=0;
+        
+        WW2_source_constr1(i,j) = r_ww2(i,j) <= M* HP2_src(i,j);
+        WW2_source_constr2(i,j) = r_ww2(i,j) <= T(i,j);
+        WW2_source_constr3(i,j) = r_ww2(i,j) >= T(i,j) - M*(1- HP2_src(i,j));
+        WW2_source_constr4(i,j) = r_ww2(i,j) >=0;   
+        
+    end
+    WW2_tempdiff_constr(i)= z_ww2(i,1)+ z_ww2(i,2) + z_ww2(i,3)+ z_ww2(i,4)+ z_ww2(i,5)...
+                      >=  r_ww2(i,1)+ r_ww2(i,2) + r_ww2(i,3)+ r_ww2(i,4)+ r_ww2(i,5);
+end
+
+ECOVAT.Constraints.WW2_sink_constr1= WW2_sink_constr1;
+ECOVAT.Constraints.WW2_sink_constr2= WW2_sink_constr2;
+ECOVAT.Constraints.WW2_sink_constr3= WW2_sink_constr3;
+ECOVAT.Constraints.WW2_sink_constr4= WW2_sink_constr4;
+
+ECOVAT.Constraints.WW2_source_constr1= WW2_source_constr1;
+ECOVAT.Constraints.WW2_source_constr2= WW2_source_constr2;
+ECOVAT.Constraints.WW2_source_constr3= WW2_source_constr3;
+ECOVAT.Constraints.WW2_source_constr4= WW2_source_constr4;
+
+ECOVAT.Constraints.WW2_tempdiff_constr= WW2_tempdiff_constr;
+
+disp('>> W/W 2 heat pump source/sink constraints created...')
+
+%% WW2 heat pump connection constraint:
+%To ensure that either both a heat source and heat sink are selected, or neither is.
+
+WW2_conn_constr = optimconstr(T_horizon);
+WW2_x_constr = optimconstr(T_horizon,Nseg);
+
+for i=1:T_horizon
+    WW2_conn_constr(i)= HP2_sink(i,1)+ HP2_sink(i,2)+ HP2_sink(i,3)+ HP2_sink(i,4)+ HP2_sink(i,5)...
+                     == HP2_src(i,1)+ HP2_src(i,2) + HP2_src(i,3)+ HP2_src(i,4)+ HP2_src(i,5);
+   
+   for j=1:Nseg
+       WW2_x_constr(i,j)= x(i,j,'WW2')== HP2_sink(i,j);
+   end
+end
+
+ECOVAT.Constraints.WW2_conn_constr= WW2_conn_constr;
+ECOVAT.Constraints.WW2_x_constr= WW2_x_constr;
+disp('>> W/W 2 heat pump connection constraints created...')
 
 
 %% Heat Demand Model:
@@ -429,12 +441,8 @@ Demand_constr1 = optimconstr(T_horizon,5);
 Demand_constr2 = optimconstr(T_horizon,5);
 Demand_constr3 = optimconstr(T_horizon,5);
 Demand_constr4 = optimconstr(T_horizon,5);
-
 Demand_constr5 = optimconstr(T_horizon,5);
-
 Demand_constr6 = optimconstr(T_horizon);
-
-
 
 % Ydem is a variable introduced to linearize the nonlinear constraint
 ydem= optimvar('ydem',T_horizon,5,'Type','continuous');
@@ -469,54 +477,8 @@ ECOVAT.Constraints.Demand_constr6= Demand_constr6;
 disp('>> Heat demand constraints created...') 
 
 
-%% Model of the Heat losses for each segment:
 
-Qloss = optimexpr(T_horizon,Nseg);
-
-for i=1:T_horizon
-    for j=1:Nseg
-        Qloss(i,j) = (1-(1-B)^(1/4380))*(T(i,j)-Tgw)*(Ms(j)*Cp/3600);
-    end
-end
-
-%% Temperature evolution inside the buffer:
-
-% 
-% for i=1:T_horizon-1
-%     
-% %    T(i+1,5)= T(i,5)+ (dt/(Ms(5)*Cp))*(...
-% %                nth0*G(i)*Apvt*Npvt*x(i,5,'PVT')-...
-% %                Cww1*(COPww1-1)*HP1_src(i,5)-...
-% %                Cww2*(COPww2-1)*HP2_src(i,5)-...
-% %                Q_dem(i)*x(i,5,'DEM')-...
-% %                (1-((1-B)^(1/4380))*(T(i,5)-Tgw)*Ms(5)*Cp/3600));
-%                
-%             T(i+1,5)= T(i,5)+ (dt/(Ms(5)*Cp))*(...
-%                -Q_dem(i)*x(i,5,'DEM')-...
-%                (1-((1-B)^(1/4380))*(T(i,5)-Tgw)*Ms(5)*Cp/3600));
-%     % For the rest of the segments:
-%     for j=1:4
-%                
-% %       T(i+1,j)= T(i,j) +...
-% %                     (dt/(Ms(j)*Cp))*(...
-% %                     Caw*COPaw*x(i,j,'AW')+...
-% %                     Cww1*COPww1*HP1_sink(i,j)-...
-% %                     Cww1*(COPww1-1)*HP1_src(i,j)+...
-% %                     Cww2*COPww2*HP2_sink(i,j)-...
-% %                     Cww2*(COPww2-1)*HP2_src(i,j)+...
-% %                     Cres*x(i,j,'RES')-...
-% %                     Q_dem(i)*x(i,j,'DEM')-...
-% %                     (1-((1-B)^(1/4380))*(T(i,j)-Tgw)*Ms(j)*Cp/3600));
-%                 
-%                     T(i+1,j)= T(i,j) +...
-%                     (dt/(Ms(j)*Cp))*(...
-%                     Caw*COPaw*x(i,j,'AW')+...
-%                     Cres*x(i,j,'RES')-...
-%                     Q_dem(i)*x(i,j,'DEM')-...
-%                     (1-((1-B)^(1/4380))*(T(i,j)-Tgw)*Ms(j)*Cp/3600));
-%     end
-% end
-%      
+%% Temperature evolution inside the buffer: 
 
 Temp_constr = optimconstr(T_horizon,Nseg);
 
@@ -531,9 +493,11 @@ Temp_constr = optimconstr(T_horizon,Nseg);
 for i=1:T_horizon-1
     
    Temp_constr(i+1,5)= T(i+1,5)== T(i,5)+ (dt/(Ms(5)*Cp))*(-...
-                Cww1*(COPww1-1)*HP1_src(i,5)+...
+               Cww1*(COPww1-1)*HP1_src(i,5)-...
+               Cww2*(COPww2-1)*HP2_src(i,5)+...
                nth0*G(i)*Apvt*Npvt*x(i,5,'PVT')-...
-               Q_dem(i)*x(i,5,'DEM'));
+               Q_dem(i)*x(i,5,'DEM')-...
+               (1-(1-B)^(1/4380))*(T(i,j)-Tgw)*(Ms(j)*Cp/3600));
            
   
                
@@ -544,9 +508,12 @@ for i=1:T_horizon-1
                     (dt/(Ms(j)*Cp))*(+...
                     Cww1*COPww1*HP1_sink(i,j)-...
                     Cww1*(COPww1-1)*HP1_src(i,j)+...
+                    Cww2*COPww2*HP2_sink(i,j)-...
+                    Cww2*(COPww2-1)*HP2_src(i,j)+...
                     Caw*COPaw*x(i,j,'AW')+...
                     Cres*x(i,j,'RES')-...
-                    Q_dem(i)*x(i,j,'DEM'));
+                    Q_dem(i)*x(i,j,'DEM')-...
+                    (1-(1-B)^(1/4380))*(T(i,j)-Tgw)*(Ms(j)*Cp/3600));
     end
 end
      
@@ -572,7 +539,7 @@ for i=1:T_horizon
     PVT_gen(i)=nel0*G(i)*Apvt*Npvt;
     HP = 0;
     for j=1: Nseg
-    HP = HP+((Caw*x(i,j,'AW'))+ (Cres*x(i,j,'RES')));
+    HP = HP+((Caw*x(i,j,'AW'))+ (Cres*x(i,j,'RES'))+ Cww1*HP1_sink(i,j)+ Cww2*HP2_sink(i,j));
     end
     OP_Cost(i) = HP;
     tot_Cost(i) = (OP_Cost(i) - PVT_gen(i))*ePrice(i)*1e-6;
@@ -593,15 +560,12 @@ disp('>> Objective function created...')
 
 
 %% Solve the Optimization Problem:
-%Integer linear programming
+%Integer linear programming solvder
 %Suppress iterative display
 disp('> Solving the optimization problem...') 
-%options = optimoptions('intlinprog','Display','iter');
-% ECOVATproblem = prob2struct(ECOVAT);
-% 
-% ECOsol = intlinprog(ECOVATproblem)
-%[ECOVATsol,fval,exitflag,output] = solve(ECOVAT,'options',options);
-[ECOVATsol ,fval,exitflag,output] = solve(ECOVAT);
+options = optimoptions('intlinprog','Display','iter');
+[ECOVATsol,fval,exitflag,output] = solve(ECOVAT,'options',options);
+
 
 
 

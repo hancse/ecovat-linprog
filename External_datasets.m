@@ -38,9 +38,9 @@ disp('> Heat demand Dataset Generated')
 Q_dem=kron(Q_dem,ones(4,1));
 % The temperature at at which the demand should be supplied [C]:
 Tdem =40;
-
 % Total number of PVTs:
 Npvt =Nhouses*6;
+
 %% Electricity prices [Euro/MWh]:
 disp('> Loading Electricity Prices Dataset...')
 load('HM_fEAPX');
